@@ -1,101 +1,88 @@
-import { useEffect, useState } from 'react'
-import './App.css'
+import { useEffect, useState } from 'react';
+import './App.css';
 
-// Assume you have a Loading component ready
+// Loading Skeleton
 function Loading() {
   return (
-    <div className="w-[40vh] h-[40vh] bg-gray-700 rounded-lg animate-pulse m-[2vh] flex flex-col justify-center items-center">
-      <div className="bg-gray-500 w-[20vh] h-[20vh] rounded-full mb-4"></div>
+    <div className="w-60 h-72 bg-gray-700 rounded-lg animate-pulse m-4 flex flex-col justify-center items-center">
+      <div className="bg-gray-500 w-24 h-24 rounded-full mb-4"></div>
       <div className="h-4 bg-gray-500 w-1/2 mb-2 rounded"></div>
       <div className="h-3 bg-gray-500 w-1/3 rounded"></div>
     </div>
-  )
+  );
 }
 
 function App() {
-  const [count, setCount] = useState(0)
-  const IMAGE_URL = "https://robohash.org/"
-  const DATA_URL = "https://jsonplaceholder.typicode.com/users"
+  const IMAGE_URL = "https://robohash.org/";
+  const DATA_URL = "https://jsonplaceholder.typicode.com/users";
 
   const [robo, setRobo] = useState([]);
-  const [isloading, setIsloading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [value, setValue] = useState("");
-  const [filterData, setFilter] = useState(robo);
+  const [filterData, setFilterData] = useState([]);
 
   useEffect(() => {
-    async function getRobo() {
-      setIsloading(true);
+    async function getRobots() {
+      setIsLoading(true);
       try {
         const res = await fetch(DATA_URL);
         const data = await res.json();
-        console.log(data);
-
         setRobo(data);
+      } catch (err) {
+        console.error(err);
       }
-      catch (err) {
-        console.log(err);
-      }
-      setIsloading(false);
+      setIsLoading(false);
     }
-    getRobo();
-  }, [])
+    getRobots();
+  }, []);
 
   useEffect(() => {
-    setFilter(robo);
-  }, [robo])
-
-  useEffect(() => {
-    const filtereredData = robo.filter((list) => {
-      return list.name.toLowerCase().includes(value.toLowerCase());
-    })
-    setFilter(filtereredData);
-  }, [value, robo]);  // Also include `robo` in dependency!
+    const filtered = robo.filter(robot =>
+      robot.name.toLowerCase().includes(value.toLowerCase())
+    );
+    setFilterData(filtered);
+  }, [value, robo]);
 
   return (
-    <div className='flex flex-col justify-center items-center bg-black min-h-screen'>
-      
-      <div className='flex justify-center items-center border border-black rounded-lg shadow-lg shadow-white w-[60vh] h-[8vh] m-[5vh]'>
+    <div className="flex flex-col min-h-screen bg-gradient-to-b from-black via-gray-900 to-black p-8 items-center">
+      <h1 className="text-4xl font-bold text-white mb-8">RoboFriends</h1>
+
+      <div className="w-full max-w-md mb-12">
         <input
           type="text"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          className="self-center px-[2vh] outline-0 m-[5vh]"
-          placeholder="Enter your Robo Name"
+          placeholder="Search Robots..."
+          className="w-full px-6 py-3 rounded-lg text-black text-lg shadow-md focus:outline-none focus:ring-2 focus:ring-purple-400"
         />
       </div>
 
-      {/* Show loading skeletons */}
-      {isloading && (
-        <div className='flex flex-wrap justify-center items-center gap-4'>
-          <Loading />
-          <Loading />
-          <Loading />
-          <Loading />
+      {isLoading ? (
+        <div className="flex flex-wrap justify-center gap-6">
+          {Array.from({ length: 6 }).map((_, idx) => <Loading key={idx} />)}
         </div>
-      )}
-
-      {/* No Data Found */}
-      {!isloading && filterData.length === 0 && (
-        <h1 className='text-xl text-white'>No Data Found</h1>
-      )}
-
-      {/* Show Robo cards */}
-      {!isloading && filterData.length > 0 && (
-        <div className="flex flex-wrap justify-center items-center">
-          {filterData.map((list) => (
-            <div key={list.id} className='flex justify-center flex-col bg-black text-white w-[40vh] h-[40vh] m-[2vh] rounded-lg shadow-lg shadow-white'>
-              <img src={`https://robohash.org/${list.id}`} alt="roboImg" className='w-[20vh] h-[20vh] self-center' />
-              <div className='self-center'>
-                <h2>{list.name}</h2>
-                <p>{list.email}</p>
-              </div>
+      ) : filterData.length === 0 ? (
+        <h2 className="text-2xl text-red-400">No Robots Found 🚫</h2>
+      ) : (
+        <div className="grid gap-8 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+          {filterData.map((robot) => (
+            <div
+              key={robot.id}
+              className="bg-gray-800 text-white rounded-2xl overflow-hidden shadow-lg hover:scale-105 transform transition-all duration-300 p-6 flex flex-col items-center"
+            >
+              <img
+                src={`${IMAGE_URL}${robot.id}`}
+                alt="Robot Avatar"
+                className="w-32 h-32 mb-4 rounded-full object-cover"
+              />
+              <h3 className="text-xl font-semibold">{robot.name}</h3>
+              <p className="text-gray-400">{robot.email}</p>
             </div>
           ))}
         </div>
       )}
-
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
